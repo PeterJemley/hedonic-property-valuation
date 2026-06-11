@@ -1,0 +1,20 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+uffi_env/
+*.egg-info/
+
+# --- R ---
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# --- OS / editor ---
+.DS_Store
+.vscode/
+.idea/

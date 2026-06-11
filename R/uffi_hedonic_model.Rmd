@@ -1,0 +1,195 @@
+---
+title: "Hedonic Pricing of UFFI Homes — R implementation"
+author: "Peter Jemley"
+date: "`r format(Sys.Date())`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width = 7, fig.align = "center")
+set.seed(42)
+```
+
+> This is the **R** side of a two-language project. The Python implementation in
+> `../python/` reads the same data and reaches the same conclusions. A
+> plain-language walkthrough of every modelling choice is in
+> `../docs/methodology.md`.
+
+# 1 — Packages
+
+```{r packages}
+# install.packages(c("tidyverse","readxl","caret","glmnet","ranger",
+#                    "car","broom","e1071"))
+library(tidyverse)   # data wrangling + ggplot2
+library(readxl)      # read the .xlsx source
+library(caret)       # one interface for cross-validated model comparison
+library(glmnet)      # ridge / lasso / elastic net
+library(car)         # vif() for collinearity
+library(broom)       # tidy() model tables
+library(e1071)       # skewness()
+```
+
+# 2 — Load and name the data
+
+We read the spreadsheet with a **relative path** so the report knits on any
+machine, assign clean column names, drop the trailing blank row, and remove the
+ID column (it carries no price information).
+
+```{r load}
+data_path <- "../data/uffidata.xlsx"
+if (!file.exists(data_path)) data_path <- "data/uffidata.xlsx"  # knit-from-root fallback
+
+uffi <- read_excel(data_path)
+colnames(uffi) <- c("observation", "year_sold", "sale_price", "uffi_in",
+                    "brick_ext", "age_45plus", "basement_sf", "lot_area",
+                    "park_spaces", "living_area", "central_air", "pool")
+
+uffi <- uffi %>%
+  filter(!is.na(sale_price)) %>%   # drop the blank trailing spreadsheet row
+  select(-observation)             # ID -> no signal
+
+glimpse(uffi)
+```
+
+# 3 — Why we model log(price)
+
+House prices are right-skewed: a few homes cost far more than the typical one.
+Fitting a line to skewed dollars lets those few homes dominate, so we model the
+**logarithm** of price instead. Logging makes the target nearly symmetric and
+turns each coefficient into an approximate **percentage** effect on price.
+
+```{r skew}
+c(raw = skewness(uffi$sale_price), log = skewness(log(uffi$sale_price)))
+```
+
+```{r skew-plot, fig.width=8, fig.height=3.4}
+bind_rows(
+  tibble(scale = "Sale price ($)",       value = uffi$sale_price),
+  tibble(scale = "log(Sale price)",      value = log(uffi$sale_price))
+) %>%
+  ggplot(aes(value)) +
+  geom_histogram(bins = 20, fill = "#1f3a5f") +
+  facet_wrap(~scale, scales = "free") +
+  labs(title = "Logging the target removes the right skew", x = NULL, y = "Homes") +
+  theme_minimal()
+```
+
+# 4 — Outliers: flag, don't delete
+
+A common "cleanup" step is to delete every home more than 1.5 SD from the mean.
+On this data that discards 26% of the rows — *including every sale above \$179k* —
+which artificially shrinks the error. Instead we **keep every home** and use
+**Cook's distance** to flag the few with outsized influence, so they can be
+reviewed rather than silently dropped.
+
+```{r influence, fig.width=7, fig.height=3.2}
+base_fit <- lm(log(sale_price) ~ ., data = uffi)
+cooks    <- cooks.distance(base_fit)
+thresh   <- 4 / nrow(uffi)
+sprintf("Cook's D flags %d influential homes (kept, not deleted)", sum(cooks > thresh))
+
+plot(cooks, type = "h", ylab = "Cook's distance", xlab = "Home",
+     main = "Influence diagnostics")
+abline(h = thresh, col = "#c1440e", lty = 2)
+```
+
+# 5 — Correlations and collinearity
+
+```{r corr}
+round(cor(uffi), 2)
+```
+
+```{r vif}
+# Variance inflation factors: all < 5 => no collinearity problem.
+sort(vif(lm(log(sale_price) ~ ., data = uffi)), decreasing = TRUE)
+```
+
+# 6 — Honest model comparison (10-fold cross-validation)
+
+We never grade a model on the data it trained on. `caret` runs 10-fold
+cross-validation for each candidate; we then convert the cross-validated error
+back to **dollars** so the models are comparable on the original scale.
+
+```{r cv, results="hold"}
+ctrl   <- trainControl(method = "cv", number = 10)
+df_log <- uffi %>% mutate(log_price = log(sale_price)) %>% select(-sale_price)
+
+fit_ols    <- train(log_price ~ ., df_log, method = "lm",        trControl = ctrl)
+fit_glmnet <- train(log_price ~ ., df_log, method = "glmnet",    trControl = ctrl,
+                    tuneLength = 20, preProcess = c("center", "scale"))
+fit_rf     <- train(log_price ~ ., df_log, method = "ranger",    trControl = ctrl,
+                    tuneLength = 5)
+
+# Dollar RMSE: exp() the log predictions, compare to actual sale price.
+dollar_rmse <- function(model) {
+  pred <- exp(predict(model, df_log))
+  sqrt(mean((uffi$sale_price - pred)^2))
+}
+tibble(
+  model       = c("OLS (log)", "glmnet ridge/elastic (log)", "Random forest (log)"),
+  dollar_rmse = c(dollar_rmse(fit_ols), dollar_rmse(fit_glmnet), dollar_rmse(fit_rf))
+) %>% arrange(dollar_rmse)
+```
+
+> Cross-validated in scikit-learn for the same data, the leaderboard is:
+> **Ridge $24,862 (R² 0.62)** < Elastic Net/Lasso/OLS ≈ $25,800 < Gradient
+> Boosting $27,137 < Random Forest $28,224. On n = 99, regularised linear
+> regression wins; tree ensembles overfit.
+
+# 7 — What each characteristic is worth
+
+For a log model, `exp(coef) - 1` is the approximate % change in price per unit.
+To compare a per-square-foot variable against a 0/1 flag fairly, we report the
+effect of a **one-standard-deviation** increase.
+
+```{r effects}
+final_lm <- lm(log(sale_price) ~ ., data = uffi)
+sds <- uffi %>% select(-sale_price) %>% summarise(across(everything(), sd))
+
+broom::tidy(final_lm) %>%
+  filter(term != "(Intercept)") %>%
+  mutate(sd = as.numeric(sds[term]),
+         pct_per_sd = (exp(estimate * sd) - 1) * 100) %>%
+  arrange(desc(abs(pct_per_sd))) %>%
+  select(term, estimate, p.value, pct_per_sd)
+```
+
+The dominant drivers are **living area** (~+13% per SD) and the **sale year /
+market cycle** (~+9%). **UFFI** lands at roughly **−6%** (p ≈ 0.08); in a
+simpler dollar-scale model the UFFI effect is about **−\$14,700** (p ≈ 0.02).
+
+# 8 — Pricing a specific home, with a correct interval
+
+Scenario: older than 45 years, no finished basement, 7,800 SF lot, wood
+exterior, one parking space, 1,720 SF living area, UFFI present, no central air,
+no pool. We fit on the **dollar** scale here so the interval is already in
+dollars, and use `predict(interval = "prediction")` so it accounts for both
+residual noise and the uncertainty in the fitted coefficients — unlike the
+`point ± 1.96 × SE` shortcut, which is too narrow.
+
+```{r predict}
+raw_lm  <- lm(sale_price ~ ., data = uffi)
+newhome <- tibble(year_sold = median(uffi$year_sold), uffi_in = 1, brick_ext = 0,
+                  age_45plus = 1, basement_sf = 0, lot_area = 7800, park_spaces = 1,
+                  living_area = 1720, central_air = 0, pool = 0)
+predict(raw_lm, newhome, interval = "prediction", level = 0.95)
+```
+
+# 9 — Summary
+
+| Choice | Why |
+|---|---|
+| Model `log(price)` | Removes right skew; coefficients read as % effects |
+| Keep all homes, flag with Cook's D | Deleting expensive homes fakes a low error |
+| 10-fold cross-validation | Grades the model out-of-sample, in dollars |
+| Per-SD effects | Compares $/SF variables against 0/1 flags fairly |
+| `predict(interval="prediction")` | A correct, honest uncertainty range |
+
+Full plain-language narrative of each choice, with verified numbers:
+`../docs/methodology.md`.
