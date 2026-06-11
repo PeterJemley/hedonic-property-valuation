@@ -53,23 +53,48 @@ The reasoning behind each, with verified numbers: [`docs/methodology.md`](docs/m
 
 ---
 
+## Commercial extension — pricing a systematic mispricing
+
+The same engine, pointed at commercial real estate, demonstrates a concrete
+underwriting edge: **measuring an attribute the market fails to price.**
+
+In a transparently simulated book of net-leased industrial/office assets, a
+hedonic model fit on transaction prices shows the market pays for the
+credit-tenancy attributes (tenant credit, lease term, submarket) but assigns a
+*mission-critical defense lease* an effect of **−0.4%, statistically
+indistinguishable from zero** — i.e. it is priced as generic credit tenancy.
+Underwriting that attribute as defense infrastructure (a sensitivity-tested
+cap-rate compression) converts it into a capturable spread: at a 75 bps base
+case, **~10.7% of value (~$10.8M per 1.0M SF)**.
+
+![CRE market pricing](figures/08_cre_market_pricing.png)
+
+This is the same statistics as the housing study with the sign flipped — there,
+an attribute the market *discounts*; here, one it *ignores*. Full walkthrough,
+sensitivity table, and scope/disclaimers: [`docs/cre_defense_platform.md`](docs/cre_defense_platform.md).
+
+---
+
 ## What's in here
 
 ```
 hedonic-property-valuation/
 ├── data/        uffidata.xlsx + a full data dictionary
-├── python/      reusable pipeline (uffi_pipeline.py), figure script, notebook
-├── R/           the same analysis as a commented R Markdown report
-├── figures/     seven committed visualizations (regenerated from data)
-└── docs/        methodology, commercial applications, and a sample memo
+├── python/      reusable pipeline + housing notebook + the CRE extension
+├── R/           the same housing analysis as a commented R Markdown report
+├── figures/     ten committed visualizations (regenerated from data)
+└── docs/        methodology, applications, and the CRE / acquisitions write-ups
 ```
 
 - **`python/uffi_pipeline.py`** — a small, **dataset-agnostic** hedonic engine.
   Point it at a different priced-asset dataset by writing one `HedonicConfig`
   and changing nothing else.
-- **`R/uffi_hedonic_model.Rmd`** — the same workflow as a knit-ready R report.
-- **`docs/applications.md`** — how this transfers to other commerce areas.
-- **`docs/cre_acquisitions.md`** — how it maps to real-estate acquisitions work.
+- **`python/cre_defense_lease.py`** — the engine applied to commercial real
+  estate: detecting and pricing an attribute the market ignores.
+- **`R/uffi_hedonic_model.Rmd`** — the housing workflow as a knit-ready R report.
+- **`docs/cre_defense_platform.md`** — the defense-leased mispricing demonstration.
+- **`docs/cre_acquisitions.md`** — how the toolkit maps to acquisitions work.
+- **`docs/applications.md`** — how it transfers to other commerce areas.
 
 ---
 
@@ -78,8 +103,10 @@ hedonic-property-valuation/
 **Python**
 ```bash
 pip install -r requirements.txt
-python python/uffi_pipeline.py        # prints the full report
-python python/make_figures.py         # regenerates figures/
+python python/uffi_pipeline.py        # housing: prints the full report
+python python/make_figures.py         # housing: regenerates figures 01–07
+python python/cre_defense_lease.py    # commercial: the defense-lease demo
+python python/make_cre_figures.py     # commercial: regenerates figures 08–10
 jupyter notebook python/uffi_hedonic_model.ipynb
 ```
 
