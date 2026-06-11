@@ -18,6 +18,7 @@ audit. Every headline number below was produced by the code in this repo.
 | Question | Answer | Where |
 |---|---|---|
 | Can an attribute the market *ignores* be priced? | A **mission-critical defense lease** reads **−0.4%, not significant** (priced as generic credit tenancy) → underwriting it yields **~10.7% capturable** at a 75 bps overlay (~$10.8M / 1.0M SF) | [defense-lease demo](docs/cre_defense_platform.md) |
+| Does the method scale to real market data? | Same engine on **21,613 King County sales** → **R² 0.88** out-of-sample; tree ensembles overtake linear models, and **location is the #1 driver** | [King County module](docs/kingcounty_valuation.md) |
 | What does UFFI do to value? | **−6% of price** (log model, p ≈ 0.08); **−$14,700** in a simpler dollar model (p ≈ 0.02) | [`06_characteristic_effects.png`](figures/06_characteristic_effects.png) |
 | Best out-of-sample model (n = 99) | **Ridge regression on log price**, 10-fold CV RMSE **$24,862**, R² **0.62** | [`04_model_leaderboard.png`](figures/04_model_leaderboard.png) |
 | Value of an example home | **$160,900**, 95% prediction interval **$117,600 – $204,200** | [`07_prediction_interval.png`](figures/07_prediction_interval.png) |
@@ -76,23 +77,45 @@ sensitivity table, and scope/disclaimers: [`docs/cre_defense_platform.md`](docs/
 
 ---
 
+## Scaling to real market data — 21,613 King County sales
+
+The 99-home study is deliberately small and has no geography. The same engine,
+pointed at **21,613 real King County, WA sales (2014–2015)** via one new config,
+shows what scale changes:
+
+- **R² 0.88 out-of-sample**, and the leaderboard *flips* — with this much data,
+  **Random Forest** (RMSE ~$130k) overtakes the linear models that won on 99
+  homes. That reversal is the bias–variance trade-off, not a contradiction.
+- **Location is the #1 driver** (latitude +20.7% / SD) — the spatial signal the
+  small study flagged as missing. Plotted by coordinates and colored by price,
+  the county draws itself.
+
+![King County price map](figures/13_kc_price_map.png)
+
+Walkthrough and numbers: [`docs/kingcounty_valuation.md`](docs/kingcounty_valuation.md).
+
+---
+
 ## What's in here
 
 ```
 hedonic-property-valuation/
-├── data/        uffidata.xlsx + a full data dictionary
-├── python/      reusable pipeline + housing notebook + the CRE extension
+├── data/        UFFI + 21,613 King County sales + a full data dictionary
+├── python/      reusable pipeline + housing notebook + CRE & King County modules
 ├── R/           the same housing analysis as a commented R Markdown report
-├── figures/     ten committed visualizations (regenerated from data)
+├── figures/     thirteen committed visualizations (regenerated from data)
 └── docs/        methodology, applications, and the CRE / acquisitions write-ups
 ```
 
 - **`python/uffi_pipeline.py`** — a small, **dataset-agnostic** hedonic engine.
   Point it at a different priced-asset dataset by writing one `HedonicConfig`
   and changing nothing else.
+- **`python/kingcounty_valuation.py`** — the engine on 21,613 real sales:
+  scale and location handling.
 - **`python/cre_defense_lease.py`** — the engine applied to commercial real
   estate: detecting and pricing an attribute the market ignores.
 - **`R/uffi_hedonic_model.Rmd`** — the housing workflow as a knit-ready R report.
+- **`docs/kingcounty_valuation.md`** — scaling to real market data.
 - **`docs/cre_defense_platform.md`** — the defense-leased mispricing demonstration.
 - **`docs/cre_acquisitions.md`** — how the toolkit maps to acquisitions work.
 - **`docs/applications.md`** — how it transfers to other commerce areas.
@@ -108,6 +131,8 @@ python python/uffi_pipeline.py        # housing: prints the full report
 python python/make_figures.py         # housing: regenerates figures 01–07
 python python/cre_defense_lease.py    # commercial: the defense-lease demo
 python python/make_cre_figures.py     # commercial: regenerates figures 08–10
+python python/kingcounty_valuation.py # 21,613 real sales (~4 min)
+python python/make_kc_figures.py      # King County: regenerates figures 11–13
 jupyter notebook python/uffi_hedonic_model.ipynb
 ```
 
@@ -125,7 +150,8 @@ conclusions.
 
 ## A note on scope
 
-The dataset is small (n = 99) and local. The **method** generalizes; the
-**specific coefficients do not** — they illustrate technique, not a transferable
-appraisal. See [`docs/applications.md`](docs/applications.md) for where the
-approach extends and where it doesn't.
+Every dataset here is local and/or dated (and the commercial book is a labeled
+simulation). The **method** generalizes; the **specific coefficients do not** —
+they illustrate technique, not a transferable appraisal. See
+[`docs/applications.md`](docs/applications.md) for where the approach extends and
+where it doesn't.

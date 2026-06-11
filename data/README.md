@@ -1,4 +1,13 @@
-# Data dictionary — `uffidata.xlsx`
+# Data dictionaries
+
+This folder holds two real datasets. `uffidata.xlsx` (below) is the core 99-home
+study; `kc_house_data.csv` is the 21,613-sale King County set used to show the
+method at scale (see [`../docs/kingcounty_valuation.md`](../docs/kingcounty_valuation.md)).
+The simulated commercial book is generated in code, not stored here.
+
+---
+
+## `uffidata.xlsx`
 
 99 arm's-length residential sales used to study how the presence of
 **urea-formaldehyde foam insulation (UFFI)** affects sale price, controlling for
@@ -33,3 +42,30 @@ numbers as an illustration of technique, not a market appraisal.
 - No missing values remain after that drop.
 - `sale_price` is modelled on the **log scale** (skew ≈ 2.55 → 1.12 after log).
 - Outliers are **flagged** by Cook's distance, not deleted (see methodology).
+
+---
+
+## `kc_house_data.csv`
+
+21,613 home sales in King County, WA (May 2014 – May 2015) — a well-known public
+dataset. One row per sale. Target is `price`. The model uses the columns below
+plus two engineered features (`age = 2015 − yr_built`, `renovated = yr_renovated > 0`).
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `price` | $ (target) | Sale price. Median $450,000; range $75k–$7.7M; skew ≈ 4.02 (→ 0.43 logged). |
+| `sqft_living` | sq ft | Above-grade living area. |
+| `sqft_lot` | sq ft | Lot size. |
+| `bedrooms` / `bathrooms` | count | Room counts. |
+| `floors` | count | Number of floors. |
+| `waterfront` | 0/1 | Waterfront property. |
+| `view` | 0–4 | Quality-of-view rating. |
+| `condition` | 1–5 | Overall condition. |
+| `grade` | 1–13 | King County construction-quality grade. |
+| `yr_built` / `yr_renovated` | year | Used to derive `age` and `renovated`. |
+| `lat` / `long` | degrees | Location — among the strongest price drivers. |
+| `sqft_living15` | sq ft | Avg living area of the 15 nearest homes (neighborhood proxy). |
+| `zipcode`, `id`, `date`, `sqft_above`, `sqft_basement`, `sqft_lot15` | — | Present in the file; not used by the base model. |
+
+Local and dated: the coefficients are specific to this market and period. The
+**method** transfers; the numbers do not.
