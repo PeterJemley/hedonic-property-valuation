@@ -11,6 +11,10 @@ The project is implemented **twice, side by side** — once in **R** and once in
 **Python** — so the modelling choices are language-independent and easy to
 audit. Every headline number below was produced by the code in this repo.
 
+> **Companion repo:** this is the *valuation* half of acquisitions underwriting.
+> The *credit* half — scoring tenant default risk with cost-sensitive decisions —
+> is in [**credit-risk-underwriting**](https://github.com/PeterJemley/credit-risk-underwriting).
+
 ---
 
 ## Headline results
