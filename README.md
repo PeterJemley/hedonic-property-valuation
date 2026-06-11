@@ -17,6 +17,7 @@ audit. Every headline number below was produced by the code in this repo.
 
 | Question | Answer | Where |
 |---|---|---|
+| Can an attribute the market *ignores* be priced? | A **mission-critical defense lease** reads **−0.4%, not significant** (priced as generic credit tenancy) → underwriting it yields **~10.7% capturable** at a 75 bps overlay (~$10.8M / 1.0M SF) | [defense-lease demo](docs/cre_defense_platform.md) |
 | What does UFFI do to value? | **−6% of price** (log model, p ≈ 0.08); **−$14,700** in a simpler dollar model (p ≈ 0.02) | [`06_characteristic_effects.png`](figures/06_characteristic_effects.png) |
 | Best out-of-sample model (n = 99) | **Ridge regression on log price**, 10-fold CV RMSE **$24,862**, R² **0.62** | [`04_model_leaderboard.png`](figures/04_model_leaderboard.png) |
 | Value of an example home | **$160,900**, 95% prediction interval **$117,600 – $204,200** | [`07_prediction_interval.png`](figures/07_prediction_interval.png) |
