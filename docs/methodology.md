@@ -78,8 +78,10 @@ That out-of-sample error is the honest number.
 | Random forest | $28,224 | 0.51 |
 
 On a dataset this small, **regularised linear regression wins** and the fancier
-tree ensembles overfit. Reporting that honestly is the point — a model is only
-as good as its out-of-sample error.
+tree ensembles overfit. Reporting that honestly is the point — out-of-sample
+error is the test a model must pass before its numbers mean anything. (It is the
+decisive *empirical* check, not the whole story: a model can also be a poor
+*explanation* even when it predicts well — see [`explainer.md`](explainer.md) §8.)
 
 ### 3.3 State uncertainty correctly
 

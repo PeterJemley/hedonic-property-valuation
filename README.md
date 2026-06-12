@@ -17,6 +17,10 @@ audit. Every headline number below was produced by the code in this repo.
 > the *market-research* leg, screening submarkets and competitive assets, is
 > [**geospatial-market-analytics**](https://github.com/PeterJemley/geospatial-market-analytics).
 
+> **Want the *why*, not just the *what*?** [`docs/explainer.md`](docs/explainer.md)
+> explains what a price actually is, why each method works, and where it can be
+> wrong — in the spirit that methods improve only by being explained and tested.
+
 ---
 
 ## Headline results
@@ -91,7 +95,9 @@ shows what scale changes:
 
 - **R² 0.88 out-of-sample**, and the leaderboard *flips* — with this much data,
   **Random Forest** (RMSE ~$130k) overtakes the linear models that won on 99
-  homes. That reversal is the bias–variance trade-off, not a contradiction.
+  homes. That reversal is the bias–variance trade-off, not a contradiction —
+  and the forest's win is best read as a *finding* (the linear model omits
+  location), not as crowning an opaque model. See [`docs/explainer.md`](docs/explainer.md) §8.
 - **Location is the #1 driver** (latitude +20.7% / SD) — the spatial signal the
   small study flagged as missing. Plotted by coordinates and colored by price,
   the county draws itself.
@@ -121,6 +127,8 @@ hedonic-property-valuation/
 - **`python/cre_defense_lease.py`** — the engine applied to commercial real
   estate: detecting and pricing an attribute the market ignores.
 - **`R/uffi_hedonic_model.Rmd`** — the housing workflow as a knit-ready R report.
+- **`docs/explainer.md`** — *the why*: what a price is, why the methods work,
+  and where they can be wrong, in the explanatory spirit of Popper/Deutsch.
 - **`docs/kingcounty_valuation.md`** — scaling to real market data.
 - **`docs/cre_defense_platform.md`** — the defense-leased mispricing demonstration.
 - **`docs/cre_acquisitions.md`** — how the toolkit maps to acquisitions work.
