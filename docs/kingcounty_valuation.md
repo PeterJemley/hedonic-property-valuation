@@ -43,7 +43,7 @@ A caveat worth stating: winning on RMSE is not the same as carrying the
 explanation. The forest's victory is best read as a *finding* — that the linear
 specification omits spatial structure (price is largely a function of *where*) —
 and the proper response is to repair the model with that structure, not to treat
-an opaque forest as the last word. See [`explainer.md`](explainer.md) §8.
+an opaque forest as the last word. See [`../EXPLAINER.md`](../EXPLAINER.md) §8.
 
 ## Result 2 — price is mostly a map
 

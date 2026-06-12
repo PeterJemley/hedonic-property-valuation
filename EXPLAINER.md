@@ -268,4 +268,4 @@ how markets price heterogeneous things — the surest sign it is worth improving
 (why default is predictable and why accuracy is the wrong goal) and
 [geospatial-market-analytics](https://github.com/PeterJemley/geospatial-market-analytics)
 (why activity concentrates in space and time). The methodology, with the numbers,
-is in [`methodology.md`](methodology.md).*
+is in [`methodology.md`](docs/methodology.md).*

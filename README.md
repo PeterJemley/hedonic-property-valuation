@@ -11,15 +11,19 @@ The project is implemented **twice, side by side** — once in **R** and once in
 **Python** — so the modelling choices are language-independent and easy to
 audit. Every headline number below was produced by the code in this repo.
 
+### → Read the [**Explainer**](EXPLAINER.md)
+
+The deepest part of this project is not the code but the **[EXPLAINER](EXPLAINER.md)**:
+what a price actually *is*, why each method works, which parts are load-bearing,
+and where it can be wrong — in the spirit that methods improve only by being
+explained and tested against the world. Start there if you want the *why*, not
+just the *what*.
+
 > **Companion repos** — this is the *valuation* leg of an acquisitions toolkit.
 > The *credit* leg, scoring tenant default risk with cost-sensitive decisions, is
 > [**credit-risk-underwriting**](https://github.com/PeterJemley/credit-risk-underwriting);
 > the *market-research* leg, screening submarkets and competitive assets, is
 > [**geospatial-market-analytics**](https://github.com/PeterJemley/geospatial-market-analytics).
-
-> **Want the *why*, not just the *what*?** [`docs/explainer.md`](docs/explainer.md)
-> explains what a price actually is, why each method works, and where it can be
-> wrong — in the spirit that methods improve only by being explained and tested.
 
 ---
 
@@ -97,7 +101,7 @@ shows what scale changes:
   **Random Forest** (RMSE ~$130k) overtakes the linear models that won on 99
   homes. That reversal is the bias–variance trade-off, not a contradiction —
   and the forest's win is best read as a *finding* (the linear model omits
-  location), not as crowning an opaque model. See [`docs/explainer.md`](docs/explainer.md) §8.
+  location), not as crowning an opaque model. See [`EXPLAINER.md`](EXPLAINER.md) §8.
 - **Location is the #1 driver** (latitude +20.7% / SD) — the spatial signal the
   small study flagged as missing. Plotted by coordinates and colored by price,
   the county draws itself.
@@ -112,13 +116,17 @@ Walkthrough and numbers: [`docs/kingcounty_valuation.md`](docs/kingcounty_valuat
 
 ```
 hedonic-property-valuation/
-├── data/        UFFI + 21,613 King County sales + a full data dictionary
-├── python/      reusable pipeline + housing notebook + CRE & King County modules
-├── R/           the same housing analysis as a commented R Markdown report
-├── figures/     thirteen committed visualizations (regenerated from data)
-└── docs/        methodology, applications, and the CRE / acquisitions write-ups
+├── EXPLAINER.md  the why — phenomenon, method, and where it can be wrong
+├── data/         UFFI + 21,613 King County sales + a full data dictionary
+├── python/       reusable pipeline + housing notebook + CRE & King County modules
+├── R/            the same housing analysis as a commented R Markdown report
+├── figures/      thirteen committed visualizations (regenerated from data)
+└── docs/         methodology, applications, and the CRE / acquisitions write-ups
 ```
 
+- **[`EXPLAINER.md`](EXPLAINER.md)** — *start here*: what a price is, why the
+  methods work, and where they can be wrong, in the explanatory spirit of
+  Popper/Deutsch.
 - **`python/uffi_pipeline.py`** — a small, **dataset-agnostic** hedonic engine.
   Point it at a different priced-asset dataset by writing one `HedonicConfig`
   and changing nothing else.
@@ -127,8 +135,6 @@ hedonic-property-valuation/
 - **`python/cre_defense_lease.py`** — the engine applied to commercial real
   estate: detecting and pricing an attribute the market ignores.
 - **`R/uffi_hedonic_model.Rmd`** — the housing workflow as a knit-ready R report.
-- **`docs/explainer.md`** — *the why*: what a price is, why the methods work,
-  and where they can be wrong, in the explanatory spirit of Popper/Deutsch.
 - **`docs/kingcounty_valuation.md`** — scaling to real market data.
 - **`docs/cre_defense_platform.md`** — the defense-leased mispricing demonstration.
 - **`docs/cre_acquisitions.md`** — how the toolkit maps to acquisitions work.
